@@ -1,8 +1,41 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Refined color palette with more professional tones */
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-hover: #e2e8f0;
+  --secondary-foreground: #1e293b;
+  --accent: #0ea5e9;
+  --accent-hover: #0284c7;
+  --accent-foreground: #ffffff;
+  --success: #10b981;
+  --success-hover: #059669;
+  --success-foreground: #ffffff;
+  --warning: #f59e0b;
+  --warning-hover: #d97706;
+  --warning-foreground: #ffffff;
+  --destructive: #ef4444;
+  --destructive-hover: #dc2626;
+  --destructive-foreground: #ffffff;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --radius: 0.5rem;
+  
+  /* Enhanced Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 @theme inline {
@@ -14,13 +47,222 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0f172a;
+    --foreground: #f8fafc;
+    --primary: #3b82f6;
+    --primary-hover: #60a5fa;
+    --primary-foreground: #ffffff;
+    --secondary: #1e293b;
+    --secondary-hover: #334155;
+    --secondary-foreground: #f8fafc;
+    --accent: #38bdf8;
+    --accent-hover: #7dd3fc;
+    --accent-foreground: #ffffff;
+    --success: #10b981;
+    --success-hover: #34d399;
+    --success-foreground: #ffffff;
+    --warning: #f59e0b;
+    --warning-hover: #fbbf24;
+    --warning-foreground: #ffffff;
+    --destructive: #ef4444;
+    --destructive-hover: #f87171;
+    --destructive-foreground: #ffffff;
+    --muted: #1e293b;
+    --muted-foreground: #94a3b8;
+    --border: #334155;
+    --input: #1e293b;
+    --card: #1e293b;
+    --card-foreground: #f8fafc;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Form elements with enhanced styling */
+button, 
+input, 
+select, 
+textarea {
+  transition: all 0.2s ease;
+}
+
+input, textarea, select {
+  font-size: 0.95rem;
+}
+
+button {
+  font-weight: 500;
+}
+
+/* Stylized cards */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.card-header {
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-body {
+  padding: 1.25rem;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--secondary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Focus styles */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Animation for feedback */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+/* Custom badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.badge-success {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.badge-warning {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.badge-error {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+/* New enhanced styles for the report generator */
+.report-header {
+  position: relative;
+  overflow: hidden;
+}
+
+.report-header::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(circle at 80% 50%, var(--primary-hover) 0%, transparent 60%);
+  opacity: 0.1;
+  z-index: 0;
+}
+
+/* Enhanced form elements */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+textarea,
+select {
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+  background-color: var(--card);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="email"]:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px;
+}
+
+/* Buttons with subtle hover effect */
+button.primary {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+button.primary:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+button.secondary {
+  background-color: var(--secondary);
+  color: var(--secondary-foreground);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+button.secondary:hover {
+  background-color: var(--secondary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }

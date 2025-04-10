@@ -22,17 +22,17 @@ const defaultValues: FormData = {
   orgAvg: '',
   taskAvg: '',
   taskZ: '',
-  teamAvg: '',
+  campaignAvg: '',
   orgAvgPrev: '',
   taskAvgPrev: '',
   taskZPrev: '',
-  teamAvgPrev: '',
+  campaignAvgPrev: '',
   qualityRemarks: '',
   qualityProgressRemarks: '',
   hrsOrigTask: '',
   hrsOrigRedoTask: '',
-  teamHrsOrigTask: '',
-  teamHrsOrigRedoTask: '',
+  campaignHrsOrigTask: '',
+  campaignHrsOrigRedoTask: '',
   taskTimeZ: '',
   taskTimePrev: '',
   hrsOrigRedoTaskPrev: '',
@@ -311,6 +311,11 @@ export function ReportForm() {
       'stepsRemarks'
     ];
     
+    // Reset evaluation fields when a new trainer is selected
+    evaluatorFields.forEach(field => {
+      setValue(field as keyof FormData, '');
+    });
+    
     // Populate form with data from selected trainer, skipping evaluator fields
     Object.entries(formData).forEach(([key, value]) => {
       if (
@@ -453,7 +458,7 @@ export function ReportForm() {
                         <th scope="col" className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Metric</th>
                         <th scope="col" className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Week</th>
                         <th scope="col" className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Previous Week</th>
-                        <th scope="col" className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team Avg</th>
+                        <th scope="col" className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Campaign Avg</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -466,11 +471,11 @@ export function ReportForm() {
                           <FormField name="orgAvgPrev" label="" placeholder="e.g., 6.87" required />
                         </td>
                         <td className="py-2 px-4">
-                          <FormField name="teamAvg" label="" placeholder="e.g., 6.60" required />
+                          <FormField name="campaignAvg" label="" placeholder="e.g., 6.60" required />
                         </td>
                       </tr>
                       <tr>
-                        <td className="py-2 px-4 text-sm font-medium text-gray-700">Task Average</td>
+                        <td className="py-2 px-4 text-sm font-medium text-gray-700">Task Average (Original + Redo)</td>
                         <td className="py-2 px-4">
                           <FormField name="taskAvg" label="" placeholder="e.g., 7.00" required />
                         </td>
@@ -478,7 +483,7 @@ export function ReportForm() {
                           <FormField name="taskAvgPrev" label="" placeholder="e.g., 6.90" required />
                         </td>
                         <td className="py-2 px-4">
-                          <FormField name="teamAvgPrev" label="" placeholder="e.g., 6.55" required />
+                          <FormField name="campaignAvgPrev" label="" placeholder="e.g., 6.55" required />
                         </td>
                       </tr>
                       <tr>
@@ -498,7 +503,7 @@ export function ReportForm() {
                 </div>
                 
                 <p className="mt-3 text-xs text-gray-500">
-                  Z-Score compares the trainer's performance relative to team standard deviation. A positive score indicates above-average performance.
+                  Z-Score compares the trainer's performance relative to campaign standard deviation. A positive score indicates above-average performance.
                 </p>
               </div>
               
@@ -548,7 +553,7 @@ export function ReportForm() {
                         <th scope="col" className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Metric</th>
                         <th scope="col" className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Week</th>
                         <th scope="col" className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Previous Week</th>
-                        <th scope="col" className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team Avg</th>
+                        <th scope="col" className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Campaign Avg</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -561,7 +566,7 @@ export function ReportForm() {
                           <FormField name="taskTimePrev" label="" placeholder="e.g., 3:15" required />
                         </td>
                         <td className="py-2 px-4">
-                          <FormField name="teamHrsOrigTask" label="" placeholder="e.g., 5:02" required />
+                          <FormField name="campaignHrsOrigTask" label="" placeholder="e.g., 5:02" required />
                         </td>
                       </tr>
                       <tr>
@@ -573,7 +578,7 @@ export function ReportForm() {
                           <FormField name="hrsOrigRedoTaskPrev" label="" placeholder="e.g., 3:10" required />
                         </td>
                         <td className="py-2 px-4">
-                          <FormField name="teamHrsOrigRedoTask" label="" placeholder="e.g., 4:02" required />
+                          <FormField name="campaignHrsOrigRedoTask" label="" placeholder="e.g., 4:02" required />
                         </td>
                       </tr>
                       <tr>
@@ -593,7 +598,7 @@ export function ReportForm() {
                 </div>
                 
                 <p className="mt-3 text-xs text-gray-500">
-                  Time per task Z-Score compares the trainer's efficiency relative to team standard deviation. A negative score indicates faster-than-average task completion.
+                  Time per task Z-Score compares the trainer's efficiency relative to campaign standard deviation. A negative score indicates faster-than-average task completion.
                 </p>
               </div>
               

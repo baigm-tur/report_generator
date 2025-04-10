@@ -10,8 +10,8 @@ export function generateReport(data: ReportFormData): string {
   
   // Quality metrics section
   report += "## Quality Metrics\n\n";
-  report += `- Original Task Average: ${data.orgAvg} | Previous Week: ${data.orgAvgPrev} | Team Avg: ${data.teamAvg}.\n`;
-  report += `- Task Average: ${data.taskAvg} | Previous Week: ${data.taskAvgPrev}.\n`;
+  report += `- Original Task Average: ${data.orgAvg} | Previous Week: ${data.orgAvgPrev} | Campaign Avg: ${data.campaignAvg}.\n`;
+  report += `- Task Average (Original + Redo): ${data.taskAvg} | Previous Week: ${data.taskAvgPrev}.\n`;
   report += `- Z-Score: ${data.taskZ} | Previous Week: ${data.taskZPrev}.\n\n`;
   
   // Quality evaluation
@@ -21,8 +21,8 @@ export function generateReport(data: ReportFormData): string {
   
   // Throughput metrics section
   report += "## Throughput Metrics\n\n";
-  report += `- Hours per Original Task: ${data.hrsOrigTask} | Previous Week: ${data.taskTimePrev} | Team Avg: ${data.teamHrsOrigTask}.\n`;
-  report += `- Hours per Orig+Redo Task: ${data.hrsOrigRedoTask} | Previous Week: ${data.hrsOrigRedoTaskPrev} | Team Avg: ${data.teamHrsOrigRedoTask}.\n`;
+  report += `- Hours per Original Task: ${data.hrsOrigTask} | Previous Week: ${data.taskTimePrev} | Campaign Avg: ${data.campaignHrsOrigTask}.\n`;
+  report += `- Hours per Orig+Redo Task: ${data.hrsOrigRedoTask} | Previous Week: ${data.hrsOrigRedoTaskPrev} | Campaign Avg: ${data.campaignHrsOrigRedoTask}.\n`;
   report += `- Time per Task Z-Score: ${data.taskTimeZ} | Previous Week: ${data.taskTimeZPrev}.\n`;
   report += `- Original Tasks: ${data.numOrigTasks} tasks.\n`;
   report += `- Redo Tasks: ${data.numRedoTasks} tasks.\n\n`;
@@ -334,17 +334,19 @@ export function extractDailyDataFromString(dailyDataString: string): {
   }
 }
 
-// Calculate team averages from all rows
-export function calculateTeamAverages(rows: CSVData[], previousWeekRows: CSVData[] = []): TeamAverages {
-  // Calculate average handling time for all rows
-  let totalOrigTaskTime = 0;
-  let totalRedoTaskTime = 0;
-  let totalOrgAvgRating = 0;
-  let totalTaskAvgRating = 0;
-  let countWithOrigTaskTime = 0;
-  let countWithRedoTaskTime = 0;
-  let countWithOrgAvgRating = 0;
-  let countWithTaskAvgRating = 0;
+// Calculate campaign averages from all rows
+export function calculateCampaignAverages(rows: CSVData[], previousWeekRows: CSVData[] = []): CampaignAverages {
+  // For weighted calculation based on total hours and tasks
+  let totalHours = 0;
+  let totalTasks = 0;
+  let totalOrigHours = 0;
+  let totalOrigTasks = 0;
+  
+  // For weighted quality ratings
+  let sumOrigRatingWeighted = 0;
+  let sumAllRatingWeighted = 0;
+  let totalReviewedOrigTasks = 0;
+  let totalReviewedAllTasks = 0;
   
   // Function to convert HH:MM to decimal for calculation
   const timeToDecimal = (timeStr: string): number => {
@@ -358,56 +360,76 @@ export function calculateTeamAverages(rows: CSVData[], previousWeekRows: CSVData
   
   // Process current week data
   for (const row of rows) {
-    // Hours per original task
-    const hrsOrigTask = timeToDecimal(row['T(O)H/T'] || '0:00');
-    if (hrsOrigTask > 0) {
-      totalOrigTaskTime += hrsOrigTask;
-      countWithOrigTaskTime++;
+    // Get task counts
+    const origTaskCount = parseInt(row['T(O)C'] || '0');
+    const totalTaskCount = parseInt(row['TTC'] || '0');
+    
+    // Get hours (either total logged or calculate from hours per task)
+    let origHours = 0;
+    const loggedHours = timeToDecimal(row['T(C)LH'] || '0:00');
+    const hrsPerOrigTask = timeToDecimal(row['T(O)H/T'] || '0:00');
+    
+    if (hrsPerOrigTask > 0 && origTaskCount > 0) {
+      origHours = hrsPerOrigTask * origTaskCount;
     }
     
-    // Hours per redo task
-    const hrsRedoTask = timeToDecimal(row['T(T)H/T'] || '0:00');
-    if (hrsRedoTask > 0) {
-      totalRedoTaskTime += hrsRedoTask;
-      countWithRedoTaskTime++;
+    // Add to totals for hours/tasks calculation
+    if (origTaskCount > 0 && origHours > 0) {
+      totalOrigHours += origHours;
+      totalOrigTasks += origTaskCount;
     }
     
-    // Original task rating
-    const orgAvgRating = parseFloat(row['T(O)AvR'] || '0');
-    if (orgAvgRating > 0) {
-      totalOrgAvgRating += orgAvgRating;
-      countWithOrgAvgRating++;
+    if (totalTaskCount > 0 && loggedHours > 0) {
+      totalHours += loggedHours;
+      totalTasks += totalTaskCount;
     }
     
-    // All tasks rating average
-    const taskAvgRating = parseFloat(row['T(T)AvR'] || '0');
-    if (taskAvgRating > 0) {
-      totalTaskAvgRating += taskAvgRating;
-      countWithTaskAvgRating++;
+    // Calculate weighted quality ratings
+    const origReviewedCount = parseInt(row['T(O)R'] || '0');
+    const origAvgRating = parseFloat(row['T(O)AvR'] || '0');
+    
+    if (origReviewedCount > 0 && origAvgRating > 0) {
+      sumOrigRatingWeighted += (origAvgRating * origReviewedCount);
+      totalReviewedOrigTasks += origReviewedCount;
+    }
+    
+    const allTasksRating = parseFloat(row['T(T)AvR'] || '0');
+    // All tasks reviewed count is the sum of original and redo reviews
+    const allReviewedCount = 
+      parseInt(row['T(O)R'] || '0') + 
+      parseInt(row['T(R)R'] || '0');
+    
+    if (allReviewedCount > 0 && allTasksRating > 0) {
+      sumAllRatingWeighted += (allTasksRating * allReviewedCount);
+      totalReviewedAllTasks += allReviewedCount;
     }
   }
   
-  // Calculate the team averages
-  const teamHrsOrigTask = countWithOrigTaskTime > 0 
-    ? formatTime(totalOrigTaskTime / countWithOrigTaskTime)
-    : '0:00';
-    
-  const teamHrsOrigRedoTask = countWithRedoTaskTime > 0 
-    ? formatTime(totalRedoTaskTime / countWithRedoTaskTime)
-    : '0:00';
-    
-  const teamAvg = countWithTaskAvgRating > 0 
-    ? (totalTaskAvgRating / countWithTaskAvgRating).toFixed(2)
-    : '0';
-    
+  // Calculate the campaign averages
+  let campaignHrsOrigTask = '0:00';
+  if (totalOrigTasks > 0 && totalOrigHours > 0) {
+    campaignHrsOrigTask = formatTime(totalOrigHours / totalOrigTasks);
+  }
+  
+  let campaignHrsOrigRedoTask = '0:00';
+  if (totalTasks > 0 && totalHours > 0) {
+    campaignHrsOrigRedoTask = formatTime(totalHours / totalTasks);
+  }
+  
+  // Calculate weighted quality average
+  let campaignAvg = '0';
+  if (totalReviewedAllTasks > 0) {
+    campaignAvg = (sumAllRatingWeighted / totalReviewedAllTasks).toFixed(2);
+  }
+  
   // Process previous week data for comparison
-  const previousWeekTeamAvg = calculatePreviousWeekAverage(previousWeekRows);
+  const previousWeekCampaignAvg = calculatePreviousWeekAverage(previousWeekRows);
   
   return {
-    teamHrsOrigTask,
-    teamHrsOrigRedoTask,
-    teamAvg,
-    teamAvgPrev: previousWeekTeamAvg || (Math.max(0, parseFloat(teamAvg) - 0.1)).toFixed(2),
+    campaignHrsOrigTask,
+    campaignHrsOrigRedoTask,
+    campaignAvg,
+    campaignAvgPrev: previousWeekCampaignAvg || (Math.max(0, parseFloat(campaignAvg) - 0.1)).toFixed(2),
   };
 }
 
@@ -419,22 +441,27 @@ function calculatePreviousWeekAverage(previousWeekRows: CSVData[]): string {
     return '';
   }
   
-  let totalTaskAvgRating = 0;
-  let countWithTaskAvgRating = 0;
+  // For weighted quality ratings
+  let sumAllRatingWeighted = 0;
+  let totalReviewedAllTasks = 0;
   
   // Process previous week data
   for (const row of previousWeekRows) {
-    // All tasks rating average
-    const taskAvgRating = parseFloat(row['T(T)AvR'] || '0');
-    if (taskAvgRating > 0) {
-      totalTaskAvgRating += taskAvgRating;
-      countWithTaskAvgRating++;
+    const allTasksRating = parseFloat(row['T(T)AvR'] || '0');
+    // All tasks reviewed count is the sum of original and redo reviews
+    const allReviewedCount = 
+      parseInt(row['T(O)R'] || '0') + 
+      parseInt(row['T(R)R'] || '0');
+    
+    if (allReviewedCount > 0 && allTasksRating > 0) {
+      sumAllRatingWeighted += (allTasksRating * allReviewedCount);
+      totalReviewedAllTasks += allReviewedCount;
     }
   }
   
-  // Calculate the team average
-  return countWithTaskAvgRating > 0 
-    ? (totalTaskAvgRating / countWithTaskAvgRating).toFixed(2)
+  // Calculate the campaign average
+  return totalReviewedAllTasks > 0 
+    ? (sumAllRatingWeighted / totalReviewedAllTasks).toFixed(2)
     : '';
 }
 
@@ -447,11 +474,11 @@ function formatTime(decimalHours: number): string {
   return `${hours}:${minutes.toString().padStart(2, '0')}`;
 }
 
-interface TeamAverages {
-  teamHrsOrigTask: string;
-  teamHrsOrigRedoTask: string;
-  teamAvg: string;
-  teamAvgPrev: string;
+interface CampaignAverages {
+  campaignHrsOrigTask: string;
+  campaignHrsOrigRedoTask: string;
+  campaignAvg: string;
+  campaignAvgPrev: string;
 }
 
 // Calculate percentage
@@ -488,8 +515,8 @@ export function parseCSVDataToReportData(row: CSVData, allRows: CSVData[], previ
   
   const dailyData = extractDailyDataFromString(dailyDataString);
   
-  // Calculate team averages for current week
-  const teamAverages = calculateTeamAverages(allRows, previousWeekData);
+  // Calculate campaign averages for current week
+  const campaignAverages = calculateCampaignAverages(allRows, previousWeekData);
   
   // Parse original tasks, redo tasks
   const numOrigTasks = row['T(O)C'] || '0';
@@ -589,19 +616,19 @@ export function parseCSVDataToReportData(row: CSVData, allRows: CSVData[], previ
     orgAvg,
     taskAvg,
     taskZ,
-    teamAvg: teamAverages.teamAvg,
+    campaignAvg: campaignAverages.campaignAvg,
     orgAvgPrev,
     taskAvgPrev,
     taskZPrev,
-    teamAvgPrev: teamAverages.teamAvgPrev,
+    campaignAvgPrev: campaignAverages.campaignAvgPrev,
     qualityRemarks,
     qualityProgressRemarks,
     
     // Throughput
     hrsOrigTask,
     hrsOrigRedoTask,
-    teamHrsOrigTask: teamAverages.teamHrsOrigTask,
-    teamHrsOrigRedoTask: teamAverages.teamHrsOrigRedoTask,
+    campaignHrsOrigTask: campaignAverages.campaignHrsOrigTask,
+    campaignHrsOrigRedoTask: campaignAverages.campaignHrsOrigRedoTask,
     taskTimeZ,
     taskTimePrev,
     hrsOrigRedoTaskPrev,
@@ -673,11 +700,11 @@ export function parseCSVDataToReportData(row: CSVData, allRows: CSVData[], previ
 /**
  * Generate quality remarks based on the trainer's performance metrics
  */
-function generateQualityRemarks(row: CSVData, teamAverages: any): string {
+function generateQualityRemarks(row: CSVData, campaignAverages: any): string {
   // Get the task average rating or default to 0
   const taskAvg = parseFloat(row['T(T)AvR'] || '0');
-  // Get the team average or default to 0
-  const teamAvg = parseFloat(teamAverages.teamAvg || '0');
+  // Get the campaign average or default to 0
+  const campaignAvg = parseFloat(campaignAverages.campaignAvg || '0');
   // Get the z-score or default to 0
   const zScore = parseFloat(row['ZAvR'] || '0');
   // Quality control percentage
@@ -690,20 +717,20 @@ function generateQualityRemarks(row: CSVData, teamAverages: any): string {
   
   let remarks = '';
   
-  // Evaluate the quality based on the average rating compared to team
-  if (taskAvg > teamAvg + 0.3) {
-    remarks = `This trainer consistently demonstrates exceptional quality, performing ${(taskAvg - teamAvg).toFixed(2)} points above the team average. `;
+  // Evaluate the quality based on the average rating compared to campaign
+  if (taskAvg > campaignAvg + 0.3) {
+    remarks = `This trainer consistently demonstrates exceptional quality, performing ${(taskAvg - campaignAvg).toFixed(2)} points above the campaign average. `;
     if (zScore > 0.5) {
-      remarks += `Their high Z-score of ${zScore.toFixed(2)} indicates they are among the top performers in the team. `;
+      remarks += `Their high Z-score of ${zScore.toFixed(2)} indicates they are among the top performers in the campaign. `;
     }
-  } else if (taskAvg > teamAvg) {
-    remarks = `The trainer maintains quality above the team average (${taskAvg} vs team avg ${teamAvg}). Their performance is solid and dependable with scores consistently above the benchmark. `;
-  } else if (taskAvg > teamAvg - 0.2) {
-    remarks = `The trainer's quality metrics are close to team average (${taskAvg} vs team avg ${teamAvg}). While their performance meets expectations, there is room for improvement to exceed the benchmark. `;
+  } else if (taskAvg > campaignAvg) {
+    remarks = `The trainer maintains quality above the campaign average (${taskAvg} vs campaign avg ${campaignAvg}). Their performance is solid and dependable with scores consistently above the benchmark. `;
+  } else if (taskAvg > campaignAvg - 0.2) {
+    remarks = `The trainer's quality metrics are close to campaign average (${taskAvg} vs campaign avg ${campaignAvg}). While their performance meets expectations, there is room for improvement to exceed the benchmark. `;
   } else {
-    remarks = `Quality metrics are below team average (${taskAvg} vs team avg ${teamAvg}). This is an area that needs attention and improvement. `;
+    remarks = `Quality metrics are below campaign average (${taskAvg} vs campaign avg ${campaignAvg}). This is an area that needs attention and improvement. `;
     if (zScore < -0.5) {
-      remarks += `Their Z-score of ${zScore.toFixed(2)} indicates a significant deviation from team norms. `;
+      remarks += `Their Z-score of ${zScore.toFixed(2)} indicates a significant deviation from campaign norms. `;
     }
     remarks += `Consider additional training or support to help raise these scores. `;
   }
@@ -723,8 +750,8 @@ function generateQualityRemarks(row: CSVData, teamAverages: any): string {
 /**
  * Generate throughput remarks based on the trainer's performance metrics
  */
-function generateThroughputRemarks(row: CSVData, teamAverages: any): string {
-  // Parse hours per task for both trainer and team
+function generateThroughputRemarks(row: CSVData, campaignAverages: any): string {
+  // Parse hours per task for both trainer and campaign
   const parseTime = (timeStr: string): number => {
     if (!timeStr || timeStr === '-') return 0;
     if (timeStr.includes(':')) {
@@ -735,7 +762,7 @@ function generateThroughputRemarks(row: CSVData, teamAverages: any): string {
   };
   
   const hoursPerTask = parseTime(row['T(O)H/T'] || '0:00');
-  const teamHoursPerTask = parseTime(teamAverages.teamHrsOrigTask || '0:00');
+  const campaignHoursPerTask = parseTime(campaignAverages.campaignHrsOrigTask || '0:00');
   
   // Early return if no meaningful data
   if (parseFloat(row['T(O)C'] || '0') === 0) {
@@ -749,23 +776,23 @@ function generateThroughputRemarks(row: CSVData, teamAverages: any): string {
   
   // Derive time efficiency
   const timeEfficiency = 
-    hoursPerTask && teamHoursPerTask 
-      ? (teamHoursPerTask - hoursPerTask) / teamHoursPerTask 
+    hoursPerTask && campaignHoursPerTask 
+      ? (campaignHoursPerTask - hoursPerTask) / campaignHoursPerTask 
       : 0;
   
   let remarks = "";
   
   // Time per task analysis
   if (Math.abs(timeEfficiency) < 0.1) {
-    remarks = `The trainer's hours per task (${row['T(O)H/T']}) are in line with the team average (${teamAverages.teamHrsOrigTask}). `;
+    remarks = `The trainer's hours per task (${row['T(O)H/T']}) are in line with the campaign average (${campaignAverages.campaignHrsOrigTask}). `;
   } else if (timeEfficiency > 0.3) {
-    remarks = `The trainer completes tasks significantly faster than the team average (${row['T(O)H/T']} vs team avg ${teamAverages.teamHrsOrigTask}). This excellent efficiency contributes to high productivity. `;
+    remarks = `The trainer completes tasks significantly faster than the campaign average (${row['T(O)H/T']} vs campaign avg ${campaignAverages.campaignHrsOrigTask}). This excellent efficiency contributes to high productivity. `;
   } else if (timeEfficiency > 0.1) {
-    remarks = `The trainer's hours per task (${row['T(O)H/T']}) are better than the team average (${teamAverages.teamHrsOrigTask}), demonstrating good time management. `;
+    remarks = `The trainer's hours per task (${row['T(O)H/T']}) are better than the campaign average (${campaignAverages.campaignHrsOrigTask}), demonstrating good time management. `;
   } else if (timeEfficiency < -0.3) {
-    remarks = `The trainer takes considerably longer per task (${row['T(O)H/T']}) compared to team average (${teamAverages.teamHrsOrigTask}). This may indicate a need for process optimization or additional support. `;
+    remarks = `The trainer takes considerably longer per task (${row['T(O)H/T']}) compared to campaign average (${campaignAverages.campaignHrsOrigTask}). This may indicate a need for process optimization or additional support. `;
   } else {
-    remarks = `The trainer's hours per task (${row['T(O)H/T']}) are slightly higher than the team average (${teamAverages.teamHrsOrigTask}). There may be room for improving efficiency. `;
+    remarks = `The trainer's hours per task (${row['T(O)H/T']}) are slightly higher than the campaign average (${campaignAverages.campaignHrsOrigTask}). There may be room for improving efficiency. `;
   }
   
   // Task volume analysis
@@ -866,10 +893,10 @@ function generateComplianceRemarks(row: CSVData): string {
 /**
  * Generate concluding remarks based on the trainer's overall performance
  */
-function generateConcludingRemarks(row: CSVData, teamAverages: any): string {
+function generateConcludingRemarks(row: CSVData, campaignAverages: any): string {
   // Extract key metrics
   const taskAvg = parseFloat(row['T(T)AvR'] || '0');
-  const teamAvg = parseFloat(teamAverages.teamAvg || '0');
+  const campaignAvg = parseFloat(campaignAverages.campaignAvg || '0');
   const totalTasksCount = parseInt(row['TTC'] || '0');
   
   // Compliance issues check
@@ -883,9 +910,9 @@ function generateConcludingRemarks(row: CSVData, teamAverages: any): string {
   const improvements = [];
   
   // Quality assessment
-  if (taskAvg > teamAvg + 0.2) {
+  if (taskAvg > campaignAvg + 0.2) {
     strengths.push("consistently high quality scores");
-  } else if (taskAvg < teamAvg - 0.2) {
+  } else if (taskAvg < campaignAvg - 0.2) {
     improvements.push("improving task quality");
   }
   
@@ -922,10 +949,10 @@ function generateConcludingRemarks(row: CSVData, teamAverages: any): string {
 /**
  * Suggest steps that should be taken to address performance issues
  */
-function generateStepsRemarks(row: CSVData, teamAverages: any): string {
+function generateStepsRemarks(row: CSVData, campaignAverages: any): string {
   // Extract key metrics for decision making
   const taskAvg = parseFloat(row['T(T)AvR'] || '0');
-  const teamAvg = parseFloat(teamAverages.teamAvg || '0');
+  const campaignAvg = parseFloat(campaignAverages.campaignAvg || '0');
   const totalTasksCount = parseInt(row['TTC'] || '0');
   const qcPct = parseFloat(row['QC%']?.replace('%', '') || '0');
   const activityPercent = parseFloat(row['Ac']?.replace('%', '') || '0');
@@ -934,7 +961,7 @@ function generateStepsRemarks(row: CSVData, teamAverages: any): string {
   const suspiciousActivity = row['Flag'] && row['Flag'] !== '0' && row['Flag'] !== '0.00';
   
   // Quality issues
-  const qualityIssue = taskAvg < teamAvg - 0.2 && taskAvg > 0;
+  const qualityIssue = taskAvg < campaignAvg - 0.2 && taskAvg > 0;
   // Throughput issues
   const throughputIssue = totalTasksCount < 7 && totalTasksCount > 0;
   // Compliance issues
@@ -958,7 +985,7 @@ function generateStepsRemarks(row: CSVData, teamAverages: any): string {
   if (throughputIssue) {
     steps.push("[x] Review current task assignment process to ensure consistent workflow");
     steps.push("[ ] Check for any blockers or technical issues that may be impeding productivity");
-    steps.push("[ ] Consider pairing with a high-throughput team member for knowledge sharing");
+    steps.push("[ ] Consider pairing with a high-throughput campaign member for knowledge sharing");
   }
   
   if (complianceIssue) {
@@ -975,8 +1002,8 @@ function generateStepsRemarks(row: CSVData, teamAverages: any): string {
   
   // If no specific issues but still room for improvement
   if (steps.length === 0) {
-    if (taskAvg < teamAvg && taskAvg > 0) {
-      steps.push("[ ] Provide regular constructive feedback to help the trainer reach team average quality levels");
+    if (taskAvg < campaignAvg && taskAvg > 0) {
+      steps.push("[ ] Provide regular constructive feedback to help the trainer reach campaign average quality levels");
     }
     if (totalTasksCount < 10 && totalTasksCount > 0) {
       steps.push("[ ] Suggest time management techniques to improve overall throughput");
@@ -985,7 +1012,7 @@ function generateStepsRemarks(row: CSVData, teamAverages: any): string {
     // If still no steps, add general development step
     if (steps.length === 0) {
       steps.push("[x] Continue regular check-ins to maintain performance and identify growth opportunities");
-      steps.push("[ ] Encourage knowledge sharing and participation in team improvement initiatives");
+      steps.push("[ ] Encourage knowledge sharing and participation in campaign improvement initiatives");
     }
   }
   
@@ -995,10 +1022,10 @@ function generateStepsRemarks(row: CSVData, teamAverages: any): string {
 /**
  * Suggest a rating from 1-10 based on the trainer's metrics
  */
-function suggestRating(row: CSVData, teamAverages: any): string {
+function suggestRating(row: CSVData, campaignAverages: any): string {
   // Extract key metrics for decision making
   const taskAvg = parseFloat(row['T(T)AvR'] || '0');
-  const teamAvg = parseFloat(teamAverages.teamAvg || '0');
+  const campaignAvg = parseFloat(campaignAverages.campaignAvg || '0');
   const totalTasksCount = parseInt(row['TTC'] || '0');
   const qcPct = parseFloat(row['QC%']?.replace('%', '') || '0');
   
@@ -1011,13 +1038,13 @@ function suggestRating(row: CSVData, teamAverages: any): string {
   
   // Base rating on quality
   let qualityScore = 5;
-  if (taskAvg >= teamAvg + 0.5) {
+  if (taskAvg >= campaignAvg + 0.5) {
     qualityScore = 8;
-  } else if (taskAvg > teamAvg + 0.2) {
+  } else if (taskAvg > campaignAvg + 0.2) {
     qualityScore = 7;
-  } else if (taskAvg > teamAvg) {
+  } else if (taskAvg > campaignAvg) {
     qualityScore = 6;
-  } else if (taskAvg > teamAvg - 0.3) {
+  } else if (taskAvg > campaignAvg - 0.3) {
     qualityScore = 5;
   } else if (taskAvg > 0) {
     qualityScore = 4;

@@ -140,7 +140,7 @@ The application expects a CSV file with the following columns (among others):
 
 ## Features
 
-- **Auto-calculation of team averages**: The application automatically calculates team averages based on all trainers in the CSV file.
+- **Auto-calculation of campaign averages**: The application automatically calculates campaign averages based on all trainers in the CSV file.
 - **Smart data extraction**: Daily tasks and hours are parsed from complex strings in the CSV.
 - **Responsive design**: The application works on desktop and mobile devices.
 - **Data validation**: Form fields are validated to ensure all required information is provided.

@@ -7,19 +7,19 @@ export interface ReportFormData {
   orgAvg: string;
   taskAvg: string;
   taskZ: string;
-  teamAvg: string;
+  campaignAvg: string;
   orgAvgPrev: string;
   taskAvgPrev: string;
   taskZPrev: string;
-  teamAvgPrev: string;
+  campaignAvgPrev: string;
   qualityRemarks: string;
   qualityProgressRemarks: string;
   
   // Throughput metrics
   hrsOrigTask: string;
   hrsOrigRedoTask: string;
-  teamHrsOrigTask: string;
-  teamHrsOrigRedoTask: string;
+  campaignHrsOrigTask: string;
+  campaignHrsOrigRedoTask: string;
   taskTimeZ: string; // Z-score for time per task
   taskTimePrev: string; // Previous week's time per task
   hrsOrigRedoTaskPrev: string; // Previous week's hours per original + redo task
