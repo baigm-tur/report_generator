@@ -129,7 +129,7 @@ export function ReportOutput({ reportText }: ReportOutputProps) {
               {reportText.split('\n').length} lines
             </div>
           </div>
-          <pre className="text-sm whitespace-pre-wrap font-mono max-h-[500px] overflow-y-auto bg-card p-5 text-foreground">
+          <pre className="text-sm whitespace-pre-wrap font-mono max-h-[500px] overflow-y-auto bg-card p-5 text-black">
             {reportText}
           </pre>
         </div>

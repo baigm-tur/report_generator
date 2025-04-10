@@ -25,7 +25,7 @@ export default function Home() {
                   <polyline points="10 9 9 9 8 9"></polyline>
                 </svg>
               </div>
-              <h1 className="text-2xl font-bold text-white">Weekly Report Generator</h1>
+              <h1 className="text-2xl font-bold text-black bg-white px-4 py-2 rounded-md">Weekly Report Generator</h1>
             </div>
           </div>
         </div>
@@ -63,10 +63,10 @@ export default function Home() {
       <footer className="border-t border-border py-6 bg-muted mt-12">
         <div className="container">
           <div className="flex justify-between items-center">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-black">
               &copy; {new Date().getFullYear()} Weekly Report Generator
             </p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-black">
               A professional tool for performance analysis
             </p>
           </div>
