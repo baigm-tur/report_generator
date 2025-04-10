@@ -10,7 +10,7 @@ import { ReportFormData, CSVData } from '@/types';
 import { generateReport, extractDailyDataFromString } from '@/lib/utils';
 
 import CSVUploader from './CSVUploader';
-import TrainerSelector from './TrainerSelector';
+import { TrainerSelector } from './TrainerSelector';
 import { FormField } from './ui/FormField';
 import ReportOutput from './ReportOutput';
 
