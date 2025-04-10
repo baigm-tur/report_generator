@@ -10,7 +10,7 @@ import { ReportFormData, CSVData } from '@/types';
 import { generateReport, extractDailyDataFromString } from '@/lib/utils';
 
 import CSVUploader from './CSVUploader';
-import EmployeeSelector from './EmployeeSelector';
+import TrainerSelector from './TrainerSelector';
 import { FormField } from './ui/FormField';
 import ReportOutput from './ReportOutput';
 
@@ -89,9 +89,9 @@ const defaultValues: FormData = {
 
 export function ReportForm() {
   const [csvData, setCsvData] = useState<CSVData[]>([]);
-  const [selectedEmployee, setSelectedEmployee] = useState<Partial<CSVData> | null>(null);
+  const [selectedTrainer, setSelectedTrainer] = useState<Partial<CSVData> | null>(null);
   const [reportText, setReportText] = useState<string>('');
-  const [isEmployeeSelected, setIsEmployeeSelected] = useState<boolean>(false);
+  const [isTrainerSelected, setIsTrainerSelected] = useState<boolean>(false);
   const [prefillMessage, setPrefillMessage] = useState<string>('');
   const [previousWeekData, setPreviousWeekData] = useState<CSVData[]>([]);
   const [complexityWarning, setComplexityWarning] = useState<string>('');
@@ -284,15 +284,15 @@ export function ReportForm() {
   
   const handleCSVData = (currentWeekData: CSVData[], previousWeekData: CSVData[]) => {
     setCsvData(currentWeekData);
-    setIsEmployeeSelected(false);
+    setIsTrainerSelected(false);
     setPrefillMessage('');
     // Store the previous week data for later use
     setPreviousWeekData(previousWeekData);
   };
   
-  const handleEmployeeSelected = (data: CSVData, formData: Partial<ReportFormData>) => {
-    setSelectedEmployee(data);
-    setIsEmployeeSelected(true);
+  const handleTrainerSelected = (data: CSVData, formData: Partial<ReportFormData>) => {
+    setSelectedTrainer(data);
+    setIsTrainerSelected(true);
     
     // Track which fields were populated
     const populatedFields: string[] = [];
@@ -311,7 +311,7 @@ export function ReportForm() {
       'stepsRemarks'
     ];
     
-    // Populate form with data from selected employee, skipping evaluator fields
+    // Populate form with data from selected trainer, skipping evaluator fields
     Object.entries(formData).forEach(([key, value]) => {
       if (
         value !== undefined && 
@@ -328,53 +328,53 @@ export function ReportForm() {
     if (previousWeekData.length > 0) {
       console.log("Previous week data available:", previousWeekData.length, "records");
       
-      const employee = data.Contractor || data.Name || data.Email;
-      console.log("Looking for previous week data for:", employee);
+      const trainer = data.Contractor || data.Name || data.Email;
+      console.log("Looking for previous week data for:", trainer);
       
-      // Find matching employee in previous week data
-      const prevWeekEmployee = previousWeekData.find(
-        empData => (empData.Contractor && empData.Contractor === employee) || 
-                  (empData.Name && empData.Name === employee) || 
-                  (empData.Email && empData.Email === employee)
+      // Find matching trainer in previous week data
+      const prevWeekTrainer = previousWeekData.find(
+        empData => (empData.Contractor && empData.Contractor === trainer) || 
+                  (empData.Name && empData.Name === trainer) || 
+                  (empData.Email && empData.Email === trainer)
       );
       
-      if (prevWeekEmployee) {
-        console.log("Found previous week data for employee:", prevWeekEmployee);
+      if (prevWeekTrainer) {
+        console.log("Found previous week data for trainer:", prevWeekTrainer);
         
         // For Hours per Original + Redo Task
-        if (prevWeekEmployee.HrsPerTaskWithRedo) {
-          console.log("Setting hrsOrigRedoTaskPrev to:", prevWeekEmployee.HrsPerTaskWithRedo);
-          setValue('hrsOrigRedoTaskPrev', prevWeekEmployee.HrsPerTaskWithRedo);
+        if (prevWeekTrainer.HrsPerTaskWithRedo) {
+          console.log("Setting hrsOrigRedoTaskPrev to:", prevWeekTrainer.HrsPerTaskWithRedo);
+          setValue('hrsOrigRedoTaskPrev', prevWeekTrainer.HrsPerTaskWithRedo);
           populatedFields.push('hrsOrigRedoTaskPrev');
-        } else if (prevWeekEmployee["Hrs per Task with Redo"]) {
-          console.log("Setting hrsOrigRedoTaskPrev from alt field to:", prevWeekEmployee["Hrs per Task with Redo"]);
-          setValue('hrsOrigRedoTaskPrev', prevWeekEmployee["Hrs per Task with Redo"]);
+        } else if (prevWeekTrainer["Hrs per Task with Redo"]) {
+          console.log("Setting hrsOrigRedoTaskPrev from alt field to:", prevWeekTrainer["Hrs per Task with Redo"]);
+          setValue('hrsOrigRedoTaskPrev', prevWeekTrainer["Hrs per Task with Redo"]);
           populatedFields.push('hrsOrigRedoTaskPrev');
         }
         
         // For Z-Score
-        if (prevWeekEmployee.TimePerTaskZScore) {
-          console.log("Setting taskTimeZPrev to:", prevWeekEmployee.TimePerTaskZScore);
-          setValue('taskTimeZPrev', prevWeekEmployee.TimePerTaskZScore);
+        if (prevWeekTrainer.TimePerTaskZScore) {
+          console.log("Setting taskTimeZPrev to:", prevWeekTrainer.TimePerTaskZScore);
+          setValue('taskTimeZPrev', prevWeekTrainer.TimePerTaskZScore);
           populatedFields.push('taskTimeZPrev');
-        } else if (prevWeekEmployee["Time per Task Z-Score"]) {
-          console.log("Setting taskTimeZPrev from alt field to:", prevWeekEmployee["Time per Task Z-Score"]);
-          setValue('taskTimeZPrev', prevWeekEmployee["Time per Task Z-Score"]);
+        } else if (prevWeekTrainer["Time per Task Z-Score"]) {
+          console.log("Setting taskTimeZPrev from alt field to:", prevWeekTrainer["Time per Task Z-Score"]);
+          setValue('taskTimeZPrev', prevWeekTrainer["Time per Task Z-Score"]);
           populatedFields.push('taskTimeZPrev');
         }
         
         // Additionally, ensure we have a value for taskTimePrev (Hours per Original Task)
         if (!formData.taskTimePrev) {
-          if (prevWeekEmployee.HrsPerTask) {
-            setValue('taskTimePrev', prevWeekEmployee.HrsPerTask);
+          if (prevWeekTrainer.HrsPerTask) {
+            setValue('taskTimePrev', prevWeekTrainer.HrsPerTask);
             populatedFields.push('taskTimePrev');
-          } else if (prevWeekEmployee["Hrs per Task"]) {
-            setValue('taskTimePrev', prevWeekEmployee["Hrs per Task"]);
+          } else if (prevWeekTrainer["Hrs per Task"]) {
+            setValue('taskTimePrev', prevWeekTrainer["Hrs per Task"]);
             populatedFields.push('taskTimePrev');
           }
         }
       } else {
-        console.log("No matching employee found in previous week data");
+        console.log("No matching trainer found in previous week data");
       }
     }
     
@@ -383,7 +383,7 @@ export function ReportForm() {
     if (filledFieldCount > 0) {
       const name = data.Contractor 
         ? data.Contractor.replace(/\S+@\S+\.\S+/, '').trim() 
-        : 'Selected employee';
+        : 'Selected trainer';
       
       const hasPreviousData = previousWeekData.length > 0;
       
@@ -394,14 +394,14 @@ export function ReportForm() {
           : 'No previous week data available, estimates are being used for comparison. Evaluation text fields need to be completed manually.')
       );
     } else {
-      setPrefillMessage('No data could be extracted from the CSV for this employee. Please fill in the form manually.');
+      setPrefillMessage('No data could be extracted from the CSV for this trainer. Please fill in the form manually.');
     }
   };
   
   const handleReset = () => {
     reset(defaultValues);
     setReportText('');
-    setIsEmployeeSelected(false);
+    setIsTrainerSelected(false);
     setPrefillMessage('');
   };
   
@@ -413,14 +413,14 @@ export function ReportForm() {
         <CSVUploader onDataParsed={handleCSVData} />
         
         {csvData.length > 0 && (
-          <EmployeeSelector 
+          <TrainerSelector 
             csvData={csvData} 
             previousWeekData={previousWeekData}
-            onEmployeeSelected={handleEmployeeSelected} 
+            onTrainerSelected={handleTrainerSelected} 
           />
         )}
         
-        {isEmployeeSelected && prefillMessage && (
+        {isTrainerSelected && prefillMessage && (
           <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-md">
             <p className="text-sm text-blue-600">{prefillMessage}</p>
           </div>
@@ -498,7 +498,7 @@ export function ReportForm() {
                 </div>
                 
                 <p className="mt-3 text-xs text-gray-500">
-                  Z-Score compares the employee's performance relative to team standard deviation. A positive score indicates above-average performance.
+                  Z-Score compares the trainer's performance relative to team standard deviation. A positive score indicates above-average performance.
                 </p>
               </div>
               
@@ -593,7 +593,7 @@ export function ReportForm() {
                 </div>
                 
                 <p className="mt-3 text-xs text-gray-500">
-                  Time per task Z-Score compares the employee's efficiency relative to team standard deviation. A negative score indicates faster-than-average task completion.
+                  Time per task Z-Score compares the trainer's efficiency relative to team standard deviation. A negative score indicates faster-than-average task completion.
                 </p>
               </div>
               

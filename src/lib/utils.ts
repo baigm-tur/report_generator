@@ -546,7 +546,7 @@ export function parseCSVDataToReportData(row: CSVData, allRows: CSVData[], previ
   const orgAvg = row['T(O)AvR'] || '0';
   const taskZ = row['ZAvR'] || '0';
   
-  // Find previous week data for the same employee
+  // Find previous week data for the same trainer
   let previousWeekRow: CSVData | undefined;
   
   if (emailMatch && previousWeekData.length > 0) {
@@ -671,7 +671,7 @@ export function parseCSVDataToReportData(row: CSVData, allRows: CSVData[], previ
 }
 
 /**
- * Generate quality remarks based on the employee's performance metrics
+ * Generate quality remarks based on the trainer's performance metrics
  */
 function generateQualityRemarks(row: CSVData, teamAverages: any): string {
   // Get the task average rating or default to 0
@@ -685,21 +685,21 @@ function generateQualityRemarks(row: CSVData, teamAverages: any): string {
   
   // Early return if there's no meaningful data
   if (taskAvg === 0 || isNaN(taskAvg)) {
-    return "No quality ratings data available for this employee during the period.";
+    return "No quality ratings data available for this trainer during the period.";
   }
   
   let remarks = '';
   
   // Evaluate the quality based on the average rating compared to team
   if (taskAvg > teamAvg + 0.3) {
-    remarks = `This employee consistently demonstrates exceptional quality, performing ${(taskAvg - teamAvg).toFixed(2)} points above the team average. `;
+    remarks = `This trainer consistently demonstrates exceptional quality, performing ${(taskAvg - teamAvg).toFixed(2)} points above the team average. `;
     if (zScore > 0.5) {
       remarks += `Their high Z-score of ${zScore.toFixed(2)} indicates they are among the top performers in the team. `;
     }
   } else if (taskAvg > teamAvg) {
-    remarks = `The employee maintains quality above the team average (${taskAvg} vs team avg ${teamAvg}). Their performance is solid and dependable with scores consistently above the benchmark. `;
+    remarks = `The trainer maintains quality above the team average (${taskAvg} vs team avg ${teamAvg}). Their performance is solid and dependable with scores consistently above the benchmark. `;
   } else if (taskAvg > teamAvg - 0.2) {
-    remarks = `The employee's quality metrics are close to team average (${taskAvg} vs team avg ${teamAvg}). While their performance meets expectations, there is room for improvement to exceed the benchmark. `;
+    remarks = `The trainer's quality metrics are close to team average (${taskAvg} vs team avg ${teamAvg}). While their performance meets expectations, there is room for improvement to exceed the benchmark. `;
   } else {
     remarks = `Quality metrics are below team average (${taskAvg} vs team avg ${teamAvg}). This is an area that needs attention and improvement. `;
     if (zScore < -0.5) {
@@ -721,10 +721,10 @@ function generateQualityRemarks(row: CSVData, teamAverages: any): string {
 }
 
 /**
- * Generate throughput remarks based on the employee's performance metrics
+ * Generate throughput remarks based on the trainer's performance metrics
  */
 function generateThroughputRemarks(row: CSVData, teamAverages: any): string {
-  // Parse hours per task for both employee and team
+  // Parse hours per task for both trainer and team
   const parseTime = (timeStr: string): number => {
     if (!timeStr || timeStr === '-') return 0;
     if (timeStr.includes(':')) {
@@ -739,7 +739,7 @@ function generateThroughputRemarks(row: CSVData, teamAverages: any): string {
   
   // Early return if no meaningful data
   if (parseFloat(row['T(O)C'] || '0') === 0) {
-    return "No throughput data available for this employee during the period.";
+    return "No throughput data available for this trainer during the period.";
   }
   
   // Calculate total tasks
@@ -757,31 +757,31 @@ function generateThroughputRemarks(row: CSVData, teamAverages: any): string {
   
   // Time per task analysis
   if (Math.abs(timeEfficiency) < 0.1) {
-    remarks = `The employee's hours per task (${row['T(O)H/T']}) are in line with the team average (${teamAverages.teamHrsOrigTask}). `;
+    remarks = `The trainer's hours per task (${row['T(O)H/T']}) are in line with the team average (${teamAverages.teamHrsOrigTask}). `;
   } else if (timeEfficiency > 0.3) {
-    remarks = `The employee completes tasks significantly faster than the team average (${row['T(O)H/T']} vs team avg ${teamAverages.teamHrsOrigTask}). This excellent efficiency contributes to high productivity. `;
+    remarks = `The trainer completes tasks significantly faster than the team average (${row['T(O)H/T']} vs team avg ${teamAverages.teamHrsOrigTask}). This excellent efficiency contributes to high productivity. `;
   } else if (timeEfficiency > 0.1) {
-    remarks = `The employee's hours per task (${row['T(O)H/T']}) are better than the team average (${teamAverages.teamHrsOrigTask}), demonstrating good time management. `;
+    remarks = `The trainer's hours per task (${row['T(O)H/T']}) are better than the team average (${teamAverages.teamHrsOrigTask}), demonstrating good time management. `;
   } else if (timeEfficiency < -0.3) {
-    remarks = `The employee takes considerably longer per task (${row['T(O)H/T']}) compared to team average (${teamAverages.teamHrsOrigTask}). This may indicate a need for process optimization or additional support. `;
+    remarks = `The trainer takes considerably longer per task (${row['T(O)H/T']}) compared to team average (${teamAverages.teamHrsOrigTask}). This may indicate a need for process optimization or additional support. `;
   } else {
-    remarks = `The employee's hours per task (${row['T(O)H/T']}) are slightly higher than the team average (${teamAverages.teamHrsOrigTask}). There may be room for improving efficiency. `;
+    remarks = `The trainer's hours per task (${row['T(O)H/T']}) are slightly higher than the team average (${teamAverages.teamHrsOrigTask}). There may be room for improving efficiency. `;
   }
   
   // Task volume analysis
   if (totalTasksCount > 15) {
-    remarks += `The employee completed a high volume of tasks (${totalTasksCount}) this week. `;
+    remarks += `The trainer completed a high volume of tasks (${totalTasksCount}) this week. `;
   } else if (totalTasksCount < 5) {
-    remarks += `The employee's task volume (${totalTasksCount}) is relatively low this week. `;
+    remarks += `The trainer's task volume (${totalTasksCount}) is relatively low this week. `;
   } else {
-    remarks += `The employee's task volume (${totalTasksCount}) is at a moderate level. `;
+    remarks += `The trainer's task volume (${totalTasksCount}) is at a moderate level. `;
   }
   
   return remarks;
 }
 
 /**
- * Generate compliance remarks based on the employee's metrics
+ * Generate compliance remarks based on the trainer's metrics
  */
 function generateComplianceRemarks(row: CSVData): string {
   // Extract data with safe defaults
@@ -807,7 +807,7 @@ function generateComplianceRemarks(row: CSVData): string {
   
   // Check if there's enough data to provide compliance remarks
   if (totalHours === 0 && timeOffDays === 0) {
-    return "No time tracking data available for this employee during the period.";
+    return "No time tracking data available for this trainer during the period.";
   }
   
   // Evaluate time tracking compliance
@@ -817,10 +817,10 @@ function generateComplianceRemarks(row: CSVData): string {
     : Math.max(0, expectedMinHours - (timeOffDays * 4));
   
   if (totalHours >= expectedHoursWithTimeOff) {
-    remarks += `The employee met their ${mode} hour requirements with ${totalHoursStr} hours logged. `;
+    remarks += `The trainer met their ${mode} hour requirements with ${totalHoursStr} hours logged. `;
   } else if (totalHours > 0) {
     const shortfall = expectedHoursWithTimeOff - totalHours;
-    remarks += `The employee logged ${totalHoursStr} hours, which is ${shortfall.toFixed(1)} hours below their ${mode} requirement after accounting for ${timeOffDays} days off. `;
+    remarks += `The trainer logged ${totalHoursStr} hours, which is ${shortfall.toFixed(1)} hours below their ${mode} requirement after accounting for ${timeOffDays} days off. `;
   }
   
   // Add time off remarks
@@ -852,7 +852,7 @@ function generateComplianceRemarks(row: CSVData): string {
     remarks += `There are compliance concerns that need addressing: ${issues.join(', ')}. `;
     
     if (issues.length > 1) {
-      remarks += "These multiple compliance issues should be discussed with the employee promptly.";
+      remarks += "These multiple compliance issues should be discussed with the trainer promptly.";
     } else {
       remarks += "This should be monitored and discussed if it continues in future weeks.";
     }
@@ -864,7 +864,7 @@ function generateComplianceRemarks(row: CSVData): string {
 }
 
 /**
- * Generate concluding remarks based on the employee's overall performance
+ * Generate concluding remarks based on the trainer's overall performance
  */
 function generateConcludingRemarks(row: CSVData, teamAverages: any): string {
   // Extract key metrics
@@ -907,13 +907,13 @@ function generateConcludingRemarks(row: CSVData, teamAverages: any): string {
   let remarks = '';
   
   if (strengths.length > 0 && improvements.length > 0) {
-    remarks = `Overall, this employee demonstrates ${strengths.join(", ")}. For continued growth, focus areas should include ${improvements.join(", ")}.`;
+    remarks = `Overall, this trainer demonstrates ${strengths.join(", ")}. For continued growth, focus areas should include ${improvements.join(", ")}.`;
   } else if (strengths.length > 0) {
-    remarks = `This employee is performing well across key metrics, particularly in ${strengths.join(", ")}. Continued consistency in these areas will ensure ongoing success.`;
+    remarks = `This trainer is performing well across key metrics, particularly in ${strengths.join(", ")}. Continued consistency in these areas will ensure ongoing success.`;
   } else if (improvements.length > 0) {
-    remarks = `This employee needs to focus on ${improvements.join(", ")} to achieve better overall performance. Targeted coaching would be beneficial.`;
+    remarks = `This trainer needs to focus on ${improvements.join(", ")} to achieve better overall performance. Targeted coaching would be beneficial.`;
   } else {
-    remarks = `The employee's performance is within standard expectations. Regular feedback and engagement will help maintain and improve performance.`;
+    remarks = `The trainer's performance is within standard expectations. Regular feedback and engagement will help maintain and improve performance.`;
   }
   
   return remarks;
@@ -944,7 +944,7 @@ function generateStepsRemarks(row: CSVData, teamAverages: any): string {
   const steps = [];
   
   if (!taskAvg && !totalTasksCount) {
-    return "[x] Begin tracking performance metrics as none are currently available for this employee\n[ ] Schedule an onboarding review to ensure proper task assignment";
+    return "[x] Begin tracking performance metrics as none are currently available for this trainer\n[ ] Schedule an onboarding review to ensure proper task assignment";
   }
   
   if (qualityIssue) {
@@ -969,14 +969,14 @@ function generateStepsRemarks(row: CSVData, teamAverages: any): string {
       steps.push("[ ] Review manual time entry practices and provide guidance on automated tracking");
     }
     if (suspiciousActivity) {
-      steps.push("[x] Conduct a detailed audit of suspicious activity flags and discuss findings with the employee");
+      steps.push("[x] Conduct a detailed audit of suspicious activity flags and discuss findings with the trainer");
     }
   }
   
   // If no specific issues but still room for improvement
   if (steps.length === 0) {
     if (taskAvg < teamAvg && taskAvg > 0) {
-      steps.push("[ ] Provide regular constructive feedback to help the employee reach team average quality levels");
+      steps.push("[ ] Provide regular constructive feedback to help the trainer reach team average quality levels");
     }
     if (totalTasksCount < 10 && totalTasksCount > 0) {
       steps.push("[ ] Suggest time management techniques to improve overall throughput");
@@ -993,7 +993,7 @@ function generateStepsRemarks(row: CSVData, teamAverages: any): string {
 }
 
 /**
- * Suggest a rating from 1-10 based on the employee's metrics
+ * Suggest a rating from 1-10 based on the trainer's metrics
  */
 function suggestRating(row: CSVData, teamAverages: any): string {
   // Extract key metrics for decision making

@@ -1,9 +1,9 @@
-# Employee Report Generator
+# Trainer Report Generator
 
-A professional application for generating standardized reports based on employee performance data. This tool allows you to:
+A professional application for generating standardized reports based on trainer performance data. This tool allows you to:
 
-- Upload CSV data containing employee performance metrics
-- Select specific employees from the uploaded data
+- Upload CSV data containing trainer performance metrics
+- Select specific trainers from the uploaded data
 - Automatically populate form fields from the CSV data
 - Customize all aspects of the report
 - Generate a formatted markdown report
@@ -46,15 +46,15 @@ yarn dev
 
 1. Click on the "Upload CSV" button to select your CSV file.
 2. You can download a sample CSV file by clicking the "Download Sample CSV" button to test the application.
-3. The application expects a CSV with specific columns for employee performance data.
-4. After uploading, you can select an employee from the dropdown to populate the form.
+3. The application expects a CSV with specific columns for trainer performance data.
+4. After uploading, you can select an trainer from the dropdown to populate the form.
 
 ### Using the Sample CSV File
 
-1. Click the "Download Sample CSV" button to get a sample file with employee performance data.
+1. Click the "Download Sample CSV" button to get a sample file with trainer performance data.
 2. Upload the sample file to see how data is automatically parsed.
-3. Select any employee from the dropdown to see how fields are auto-populated.
-4. The sample contains 10 different employee records with various metrics.
+3. Select any trainer from the dropdown to see how fields are auto-populated.
+4. The sample contains 10 different trainer records with various metrics.
 
 ### Filling the Form
 
@@ -140,9 +140,8 @@ The application expects a CSV file with the following columns (among others):
 
 ## Features
 
-- **Auto-calculation of team averages**: The application automatically calculates team averages based on all employees in the CSV file.
+- **Auto-calculation of team averages**: The application automatically calculates team averages based on all trainers in the CSV file.
 - **Smart data extraction**: Daily tasks and hours are parsed from complex strings in the CSV.
-- **AI-generated evaluations**: The application suggests quality and throughput remarks based on the employee's performance.
 - **Responsive design**: The application works on desktop and mobile devices.
 - **Data validation**: Form fields are validated to ensure all required information is provided.
 

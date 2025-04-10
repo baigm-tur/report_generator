@@ -165,7 +165,7 @@ export function CSVUploader({ onDataParsed }: CSVUploaderProps) {
       {success && (
         <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-md">
           <p className="text-sm text-green-600">CSV files processed successfully!</p>
-          <p className="text-xs text-green-600 mt-1">Select an employee from the dropdown below to populate the form.</p>
+          <p className="text-xs text-green-600 mt-1">Select an trainer from the dropdown below to populate the form.</p>
         </div>
       )}
 
